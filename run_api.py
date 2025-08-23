@@ -16,6 +16,7 @@ if __name__ == "__main__":
     print("   - POST /api/v1/agents/calendar")
     print("   - POST /api/v1/agents/people-research")
     print("   - POST /api/v1/agents/technical-context")
+    print("   - POST /api/v1/agents/slack-context")  # NEW!
     print("   - POST /api/v1/agents/coordinator")
     print("   - GET /api/v1/health")
     print("\n" + "="*50)

@@ -54,12 +54,21 @@ class MeetingService:
             technical_result = await self.agent_service.run_technical_context_agent_internal(calendar_result)
             job_storage[job_id]["progress"]["completed_agents"].append("technical_context")
             job_storage[job_id]["results"]["technical_context"] = technical_result
+            job_storage[job_id]["progress"]["current_agent"] = "slack_context"
+            job_storage[job_id]["updated_at"] = datetime.utcnow()
+            
+            # Step 4: Slack Context Agent (if enabled)
+            slack_result = ""
+            if request.include_slack:
+                slack_result = await self.agent_service.run_slack_context_agent_internal(calendar_result, people_result)
+                job_storage[job_id]["progress"]["completed_agents"].append("slack_context")
+                job_storage[job_id]["results"]["slack_context"] = slack_result
             job_storage[job_id]["progress"]["current_agent"] = "coordinator"
             job_storage[job_id]["updated_at"] = datetime.utcnow()
             
-            # Step 4: Coordinator Agent
+            # Step 5: Coordinator Agent
             final_briefing = await self.agent_service.run_coordinator_agent_internal(
-                calendar_result, people_result, technical_result
+                calendar_result, people_result, technical_result, slack_result
             )
             job_storage[job_id]["progress"]["completed_agents"].append("coordinator")
             job_storage[job_id]["results"]["coordinator"] = final_briefing
@@ -92,6 +101,7 @@ class MeetingService:
             calendar_data = request.calendar_data
             people_data = request.people_data
             technical_data = request.technical_data
+            slack_data = request.slack_data
             
             for agent_name in request.agents:
                 job_storage[job_id]["progress"]["current_agent"] = agent_name
@@ -109,9 +119,13 @@ class MeetingService:
                     technical_data = await self.agent_service.run_technical_context_agent_internal(calendar_data or "")
                     results["technical_context"] = technical_data
                     
+                elif agent_name == "slack_context":
+                    slack_data = await self.agent_service.run_slack_context_agent_internal(calendar_data or "", people_data or "")
+                    results["slack_context"] = slack_data
+                    
                 elif agent_name == "coordinator":
                     final_briefing = await self.agent_service.run_coordinator_agent_internal(
-                        calendar_data or "", people_data or "", technical_data or ""
+                        calendar_data or "", people_data or "", technical_data or "", slack_data or ""
                     )
                     results["coordinator"] = final_briefing
                     results["final_briefing"] = final_briefing

@@ -18,6 +18,7 @@ from ..models.agent_models import (
     CalendarRequest,
     PeopleResearchRequest,
     TechnicalContextRequest,
+    SlackContextRequest,
     CoordinatorRequest
 )
 
@@ -25,6 +26,7 @@ from agents import (
     CalendarAgent,
     EnhancedPeopleResearchAgent as PeopleResearchAgent,
     TechnicalContextAgent,
+    SlackAgent,
     CoordinatorAgent
 )
 
@@ -50,6 +52,7 @@ class AgentService:
         self.calendar_agent = CalendarAgent(self.config, self.all_tools)
         self.people_agent = PeopleResearchAgent(self.config, self.all_tools)
         self.technical_agent = TechnicalContextAgent(self.config, self.all_tools)
+        self.slack_agent = SlackAgent(self.config, self.all_tools)
         self.coordinator_agent = CoordinatorAgent(self.config, self.all_tools)
     
     async def run_calendar_agent(self, request: CalendarRequest) -> Dict[str, Any]:
@@ -116,6 +119,29 @@ class AgentService:
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, self.technical_agent.execute, calendar_output)
     
+    async def run_slack_context_agent(self, request: SlackContextRequest) -> Dict[str, Any]:
+        """Execute Slack context agent with API request."""
+        start_time = datetime.utcnow()
+        
+        calendar_context = request.calendar_context or ""
+        people_context = request.people_context or ""
+        
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(None, self.slack_agent.execute, calendar_context, people_context)
+        
+        execution_time = (datetime.utcnow() - start_time).total_seconds()
+        
+        return {
+            "output": result,
+            "execution_time": execution_time,
+            "request_context": request.dict()
+        }
+    
+    async def run_slack_context_agent_internal(self, calendar_output: str, people_output: str) -> str:
+        """Internal method for Slack context agent execution."""
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(None, self.slack_agent.execute, calendar_output, people_output)
+    
     async def run_coordinator_agent(self, request: CoordinatorRequest) -> Dict[str, Any]:
         """Execute coordinator agent with API request."""
         start_time = datetime.utcnow()
@@ -123,6 +149,7 @@ class AgentService:
         calendar_data = request.calendar_data or ""
         people_data = request.people_data or ""
         technical_data = request.technical_data or ""
+        slack_data = request.slack_data or ""
         
         loop = asyncio.get_event_loop()
         result = await loop.run_in_executor(
@@ -130,7 +157,8 @@ class AgentService:
             self.coordinator_agent.execute,
             calendar_data,
             people_data,
-            technical_data
+            technical_data,
+            slack_data
         )
         
         execution_time = (datetime.utcnow() - start_time).total_seconds()
@@ -141,7 +169,7 @@ class AgentService:
             "request_context": request.dict()
         }
     
-    async def run_coordinator_agent_internal(self, calendar_output: str, people_output: str, technical_output: str) -> str:
+    async def run_coordinator_agent_internal(self, calendar_output: str, people_output: str, technical_output: str, slack_output: str = "") -> str:
         """Internal method for coordinator agent execution."""
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(
@@ -149,5 +177,6 @@ class AgentService:
             self.coordinator_agent.execute,
             calendar_output,
             people_output,
-            technical_output
+            technical_output,
+            slack_output
         )

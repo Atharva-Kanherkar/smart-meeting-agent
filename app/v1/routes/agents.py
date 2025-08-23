@@ -5,6 +5,7 @@ from ..models.agent_models import (
     CalendarRequest,
     PeopleResearchRequest,
     TechnicalContextRequest,
+    SlackContextRequest,
     CoordinatorRequest,
     AgentResponse
 )
@@ -45,6 +46,19 @@ async def run_technical_context_agent(request: TechnicalContextRequest):
         result = await agent_service.run_technical_context_agent(request)
         return AgentResponse(
             agent="technical_context",
+            status="success",
+            data=result
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/agents/slack-context", response_model=AgentResponse)
+async def run_slack_context_agent(request: SlackContextRequest):
+    """Execute Slack context agent to gather relevant team communications."""
+    try:
+        result = await agent_service.run_slack_context_agent(request)
+        return AgentResponse(
+            agent="slack_context",
             status="success",
             data=result
         )
