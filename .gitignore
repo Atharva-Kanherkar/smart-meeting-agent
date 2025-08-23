@@ -156,7 +156,7 @@ tmp/
 logs/
 .agent_cache/
 browser_data/
-
+.portia
 # API Keys and secrets
 secrets.json
 config.json
