@@ -17,7 +17,9 @@ if project_root not in sys.path:
 
 from portia import Config, StorageClass, LLMProvider
 
-load_dotenv()
+# Load environment variables (only in development)
+if os.getenv("RENDER") != "true":
+    load_dotenv()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,13 +33,19 @@ app = FastAPI(
     title="Smart Meeting Agent API",
     description="Multi-agent system for comprehensive meeting preparation",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
+    docs_url="/docs" if os.getenv("ENVIRONMENT") != "production" else None,
+    redoc_url="/redoc" if os.getenv("ENVIRONMENT") != "production" else None
 )
 
-# CORS middleware for frontend communication
+# CORS middleware - configure for production
+allowed_origins = ["*"] if os.getenv("ENVIRONMENT") != "production" else [
+    "https://your-frontend-domain.com"  # Replace with your actual frontend domain
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure this for your frontend domain
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -46,13 +54,19 @@ app.add_middleware(
 # Initialize Portia configuration
 def get_config():
     required_keys = ["PORTIA_API_KEY", "GOOGLE_API_KEY", "TAVILY_API_KEY"]
-    if not all(os.getenv(key) for key in required_keys):
-        raise ValueError(f"Missing required environment variables: {', '.join(required_keys)}")
+    missing_keys = [key for key in required_keys if not os.getenv(key)]
+    if missing_keys:
+        raise ValueError(f"Missing required environment variables: {', '.join(missing_keys)}")
     
     return Config.from_default(
         storage_class=StorageClass.CLOUD,
         llm_provider=LLMProvider.GOOGLE,
     )
+
+# Health check endpoint
+@app.get("/")
+async def root():
+    return {"message": "Smart Meeting Agent API is running", "status": "healthy"}
 
 # Import and include routes after app creation
 from v1.routes import meetings, health, agents
