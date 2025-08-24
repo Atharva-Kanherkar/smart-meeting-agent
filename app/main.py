@@ -62,8 +62,9 @@ app = FastAPI(
 )
 
 # CORS middleware
-allowed_origins = ["*"] if os.getenv("ENVIRONMENT") != "production" else [
-    "https://your-frontend-domain.com"
+allowed_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
 ]
 
 app.add_middleware(
@@ -110,32 +111,16 @@ async def health_check():
         "timestamp": "2025-01-01T00:00:00Z"
     }
 
-# Basic meeting endpoint for testing
-@app.post("/api/v1/meetings/prepare")
-async def prepare_meeting(meeting_data: dict):
-    if not PORTIA_AVAILABLE:
-        return {
-            "job_id": "mock_job_123",
-            "status": "started",
-            "message": "Meeting preparation started (mock mode)",
-            "data": meeting_data,
-            "note": "Running in compatibility mode without Portia"
-        }
-    
-    # Your actual meeting preparation logic here
-    return {
-        "job_id": "real_job_456", 
-        "status": "started",
-        "message": "Meeting preparation started with Portia"
-    }
+# 🔥 REMOVED THE PROBLEMATIC TEST ENDPOINT - your proper routes will handle this now!
 
 # Include other routes if they exist and are compatible
 try:
-    from v1.routes import meetings, health, agents, technical_agents  # ADD technical_agents
+    from v1.routes import meetings, health, agents, technical_agents, agenda_routes
     app.include_router(health.router, prefix="/api/v1", tags=["health"])
     app.include_router(meetings.router, prefix="/api/v1", tags=["meetings"])
     app.include_router(agents.router, prefix="/api/v1", tags=["agents"])
-    app.include_router(technical_agents.router, prefix="/api/v1", tags=["technical-agents"])  # ADD THIS LINE
+    app.include_router(technical_agents.router, prefix="/api/v1", tags=["technical-agents"])
+    app.include_router(agenda_routes.router, prefix="/api/v1", tags=["agenda-preparation"])
 
     print("✅ All routes loaded successfully")
 except ImportError as e:
