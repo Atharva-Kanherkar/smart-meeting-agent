@@ -3,6 +3,7 @@ services:
     name: smart-meeting-agent
     env: docker
     dockerfilePath: ./Dockerfile
+    plan: free
     envVars:
       - key: PORTIA_API_KEY
         sync: false
