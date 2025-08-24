@@ -24,6 +24,8 @@ class PreReadCollectorAgent:
     - Key points for meeting preparation
     - Direct link/reference
     
+    Ensure the output is in a structured JSON format with clear sections for each document type.
+    
     Focus on actionable content that will help participants prepare effectively.
     """
     

@@ -22,6 +22,8 @@ class CoordinatorAgent:
 
     Keep the briefing concise but comprehensive, focusing on actionable insights from all available data sources.
 
+    IMPORTANT: ENSURE THE FINAL OUTPUT IS CLEARLY STRUCTURED IN JSON FORMAT OR MARKDOWN.
+
     Format your response as a well-structured markdown document with clear headings and bullet points.
     """
 

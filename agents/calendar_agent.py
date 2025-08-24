@@ -15,10 +15,45 @@ class CalendarAgent:
        - Attendee email addresses
        - Meeting location (if available)
        - Meeting description/context (if available)
-    3. Present the information in a clear, structured format
-    
+   
+CRITICAL: Return ONLY pure JSON without any markdown formatting, explanations, or code blocks.
+Do not include ```json or ``` in your response.
+Return exactly this structure
     Focus on upcoming meetings and recent meetings that might be relevant for preparation.
-    Return the data in a structured format that can be easily processed by other agents.
+    IMPORTANT: Return your response as a valid JSON object with this exact structure
+{
+  "meetings": [
+    {
+      "id": "unique_meeting_id",
+      "title": "Meeting Title",
+      "date": "2025-08-25",
+      "startTime": "18:30",
+      "endTime": "19:15",
+      "timezone": "Asia/Kolkata",
+      "status": "confirmed",
+      "attendees": [
+        {
+          "email": "user@example.com",
+          "name": "User Name",
+          "responseStatus": "accepted",
+          "isOrganizer": false,
+          "isOptional": false,
+          "isSelf": false
+        }
+      ],
+      "location": "Virtual Meeting",
+      "meetingLink": "https://meet.google.com/abc-def-ghi",
+      "htmlLink": "https://calendar.google.com/...",
+      "description": "Meeting description or context",
+      "isRecurring": true,
+      "recurringEventId": "parent_event_id"
+    }
+  ]
+}
+
+Do not include any text before or after the JSON. Return only valid JSON.
+
+
     """
     
     def __init__(self, config, tools):

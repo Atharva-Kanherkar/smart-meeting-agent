@@ -20,9 +20,11 @@ class SlackAgent:
     - Search for specific messages
     - Get conversation history from relevant channels
     - Find messages from/to specific attendees
+
+        IMPORTANT: Return your response as a detailed summary of relevant Slack context.
     
     Focus on gathering context that would be useful for meeting preparation.
-    Present the information in a structured format with key insights from Slack communications.
+    
     """
     
     def __init__(self, config, tools):

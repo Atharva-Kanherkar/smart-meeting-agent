@@ -18,6 +18,7 @@ class DocumentationAgent:
     - Document title and URL
     - Type of documentation
     - Key topics covered
+    - Valid JSON format
     """
     
     def __init__(self, config, tools):

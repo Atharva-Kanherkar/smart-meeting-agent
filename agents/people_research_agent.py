@@ -20,8 +20,27 @@ class PeopleResearchAgent:
     3. For external attendees, use web research tools if available
     4. Provide insights that would be helpful for meeting preparation
     
-    Present the information in a structured format with key insights for each person.
-    """
+    IMPORTANT: Return your response as a valid JSON object with this exact structure:
+{
+  "attendees": [
+    {
+      "email": "user@example.com",
+      "name": "Full Name",
+      "role": "Software Engineer",
+      "organization": "Company Name",
+      "background": "Brief background description",
+      "expertise": ["JavaScript", "React", "Node.js"],
+      "context": "How they relate to this meeting/project",
+      "linkedinProfile": "https://linkedin.com/in/username",
+      "githubProfile": "https://github.com/username",
+      "recentActivity": "Recent work or achievements relevant to the meeting"
+    }
+  ]
+}
+
+Do not include any text before or after the JSON. Return only valid JSON
+
+        """
     
     def __init__(self, config, tools):
         self.agent = Portia(

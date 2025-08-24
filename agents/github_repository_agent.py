@@ -18,6 +18,7 @@ class GitHubRepositoryAgent:
     - Description and stars
     - Last updated date
     - Main programming language
+    - Valid JSON format
     """
     
     def __init__(self, config, tools):

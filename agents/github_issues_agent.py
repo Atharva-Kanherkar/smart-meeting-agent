@@ -17,6 +17,7 @@ class GitHubIssuesAgent:
     - Issue number, title, priority
     - Status and recent activity
     - Impact assessment
+    - Valid JSON format
     """
     
     def __init__(self, config, tools):
