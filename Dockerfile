@@ -6,28 +6,20 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install UV
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
-
 # Set working directory
 WORKDIR /app
 
+# Copy project files
+COPY pyproject.toml ./
+COPY app/ ./app/
+COPY agents/ ./agents/
+
+# Install dependencies using regular pip (fallback)
+RUN pip install --no-cache-dir -e .
+
 # Create non-root user
-RUN useradd -m -u 1001 appuser
-
-# Copy project files with correct ownership
-COPY --chown=appuser:appuser pyproject.toml ./
-COPY --chown=appuser:appuser app/ ./app/
-COPY --chown=appuser:appuser agents/ ./agents/
-
-# Switch to non-root user
+RUN useradd -m -u 1001 appuser && chown -R appuser:appuser /app
 USER appuser
-
-# Install dependencies using UV with Python 3.11
-RUN uv pip install --python python3.11 --user .
-
-# Add user's local bin to PATH
-ENV PATH="/home/appuser/.local/bin:$PATH"
 
 # Expose port
 EXPOSE 8000
