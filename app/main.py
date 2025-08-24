@@ -131,10 +131,12 @@ async def prepare_meeting(meeting_data: dict):
 
 # Include other routes if they exist and are compatible
 try:
-    from v1.routes import meetings, health, agents
+    from v1.routes import meetings, health, agents, technical_agents  # ADD technical_agents
     app.include_router(health.router, prefix="/api/v1", tags=["health"])
     app.include_router(meetings.router, prefix="/api/v1", tags=["meetings"])
     app.include_router(agents.router, prefix="/api/v1", tags=["agents"])
+    app.include_router(technical_agents.router, prefix="/api/v1", tags=["technical-agents"])  # ADD THIS LINE
+
     print("✅ All routes loaded successfully")
 except ImportError as e:
     print(f"⚠️ Some routes not available: {e}")

@@ -1,98 +1,94 @@
-# agents/technical_context_agent.py
-from portia import Portia
-from portia.cli import CLIExecutionHooks
+from .github_repository_agent import GitHubRepositoryAgent
+from .github_issues_agent import GitHubIssuesAgent
+from .documentation_agent import DocumentationAgent
+from .technology_stack_agent import TechnologyStackAgent
 
 class TechnicalContextAgent:
-    """Technical Context Agent for gathering relevant technical information."""
-    
-    PROMPT = """
-    You are a Technical Context Agent. Your task is to gather relevant technical context for the meeting.
-    
-    Based on the calendar data and attendee information:
-    1. Research recent technical developments related to the meeting topic
-    2. Look for relevant documentation, code repositories, or technical discussions
-    3. Identify key technical concepts or technologies that might be discussed
-    4. Gather information about current project status, recent changes, or technical challenges
-    5. Use web search tools to find recent news, blog posts, or technical articles related to the topic
-    
-    Focus on providing technical background that would be useful for meeting preparation.
-    Present the information in a structured format with key technical insights.
-    """
+    """Coordinator for technical context research using specialized sub-agents."""
     
     def __init__(self, config, tools):
-        self.agent = Portia(
-            config=config, 
-            tools=tools, 
-            execution_hooks=CLIExecutionHooks()
-        )
+        self.github_repo_agent = GitHubRepositoryAgent(config, tools)
+        self.github_issues_agent = GitHubIssuesAgent(config, tools)
+        self.documentation_agent = DocumentationAgent(config, tools)
+        self.tech_stack_agent = TechnologyStackAgent(config, tools)
     
     def execute(self, calendar_data):
-        """Execute technical context research."""
-        print("🔧 Agent 3: Gathering technical context...")
+        """Execute comprehensive technical context research."""
+        print("🔧 Technical Context Agent: Starting comprehensive research...")
         
         try:
-            combined_prompt = f"""
-            {self.PROMPT}
+            # Extract search terms from calendar data
+            search_terms = self._extract_search_terms(calendar_data)
             
-            Here is the calendar data to base your research on:
-            {calendar_data}
+            # Step 1: Find repositories
+            repo_info = self.github_repo_agent.execute(search_terms)
             
-            Please research and provide relevant technical context for this meeting.
-            """
+            # Step 2: Analyze issues and development activity
+            issues_info = self.github_issues_agent.execute(repo_info)
             
-            result = self.agent.run(combined_prompt, end_user="technical_context_agent")
+            # Step 3: Find documentation
+            docs_info = self.documentation_agent.execute(f"{search_terms} {repo_info}")
             
-            if result and result.outputs and result.outputs.final_output:
-                output = result.outputs.final_output.value
-                print("✅ Technical context research completed.")
-                print(f"Preview: {output[:200]}...\n")
-                return output
-            else:
-                print("⚠️ No technical context returned. Using fallback.")
-                return self._get_mock_technical_data()
-                
+            # Step 4: Research technology stack
+            tech_info = self.tech_stack_agent.execute(repo_info)
+            
+            # Combine all results
+            combined_result = self._combine_results(repo_info, issues_info, docs_info, tech_info)
+            
+            print("✅ Technical context research completed.")
+            return combined_result
+            
         except Exception as e:
             print(f"❌ Technical context research failed: {e}")
-            print("🔄 Using mock data for testing...")
-            return self._get_mock_technical_data()
+            return self._get_fallback_data()
     
-    def _get_mock_technical_data(self):
-        """Provide mock technical context data."""
-        return """Here is the technical context for the meeting:
+    def _extract_search_terms(self, calendar_data):
+        """Extract relevant search terms from calendar data."""
+        terms = []
+        if "workflow" in calendar_data.lower():
+            terms.append("workflow")
+        if "gsoc" in calendar_data.lower():
+            terms.append("google summer of code")
+        if "business4s" in calendar_data.lower():
+            terms.append("business4s")
+        
+        return " ".join(terms) if terms else "workflow orchestration"
+    
+    def _combine_results(self, repo_info, issues_info, docs_info, tech_info):
+        """Combine results from all sub-agents."""
+        return f"""# Technical Context Research Results
 
-**Technical Context for GSoC Workflows4s Project:**
+## Repository Analysis
+{repo_info}
 
-**Project Overview:**
-- Workflows4s: A workflow orchestration system for distributed computing
-- Focus on scalable, fault-tolerant workflow execution
-- Integration with modern cloud platforms and container orchestration
+## Development Activity
+{issues_info}
 
-**Key Technical Areas:**
-1. **Workflow Orchestration:**
-   - Distributed task scheduling and execution
-   - Dependency management between workflow steps
-   - Error handling and retry mechanisms
+## Documentation & Resources
+{docs_info}
 
-2. **System Architecture:**
-   - Microservices-based design
-   - Event-driven architecture
-   - Container orchestration (Kubernetes)
+## Technology Stack
+{tech_info}
 
-3. **Recent Developments:**
-   - Implementation of new scheduling algorithms
-   - Enhanced monitoring and observability features
-   - Performance optimizations for large-scale workflows
+## Summary
+Meeting will focus on workflow orchestration systems, particularly Workflows4s project. 
+Key discussion points: recent development challenges, system architecture, upcoming features.
+"""
+    
+    def _get_fallback_data(self):
+        """Fallback data when all agents fail."""
+        return """# Technical Context (Limited Information)
 
-**Technical Challenges:**
-- Handling complex workflow dependencies
-- Ensuring fault tolerance and recovery
-- Scaling to handle high-throughput scenarios
-- Integration with existing enterprise systems
+## Project Overview
+- Focus on workflow orchestration and distributed systems
+- Scala-based implementation with modern architecture
+- Integration with cloud platforms
 
-**Technologies Involved:**
-- Programming Languages: Scala, Python, Go
-- Frameworks: Akka, Apache Kafka, Kubernetes
-- Databases: PostgreSQL, Redis
-- Monitoring: Prometheus, Grafana
+## Key Areas for Discussion
+- System architecture and design patterns
+- Performance optimization strategies
+- Deployment considerations
+- Recent development progress
 
-This context should help frame technical discussions during the meeting."""
+*Note: Limited context available. Review project documentation before meeting.*
+"""
